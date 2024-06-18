@@ -5,34 +5,26 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement")]
-    public float moveSpeed;
-    private Vector2 curMovementInput;
-    public float jumptForce;
+    [Header("Movement")]  //헤더를 적어줘서 타이틀을 만들어줌 (구분)
+    public float moveSpeed;  //스피드
+    private Vector2 curMovementInput;  //인풋액션에서 받아온 값을 넣어줄 곳
+    public float jumpPower;
     public LayerMask groundLayerMask;
 
-    [Header("Look")]
-    public Transform cameraContainer;
-    public float minXLook;
-    public float maxXLook;
-    private float camCurXRot;
-    public float lookSensitivity;
-
-    private Vector2 mouseDelta;
 
     [HideInInspector]
     public bool canLook = true;
 
-    private new Rigidbody rigidbody;
+    private Rigidbody _rigidbody;  //리지드바디 받아옴
 
     private void Awake()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        _rigidbody = GetComponent<Rigidbody>();  //리지드바디 받아옴
     }
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Locked;  //마우스 모양 숨기기 (커서 숨기기)
     }
 
     private void FixedUpdate()
@@ -40,22 +32,11 @@ public class PlayerController : MonoBehaviour
         Move();
     }
 
-    private void LateUpdate()
-    {
-        if (canLook)
-        {
-            CameraLook();
-        }
-    }
+  
 
-    public void OnLookInput(InputAction.CallbackContext context)
+    public void OnMoveInput(InputAction.CallbackContext context)  // context 현재상태 받아오기
     {
-        mouseDelta = context.ReadValue<Vector2>();
-    }
-
-    public void OnMoveInput(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
+        if (context.phase == InputActionPhase.Performed) // Phase 분기점 - Started (키가 눌렸을때)는 한번만 작동해서 Performed로 바꿔줌
         {
             curMovementInput = context.ReadValue<Vector2>();
         }
@@ -65,31 +46,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnJumpInput(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Started && IsGrounded())
-        {
-            rigidbody.AddForce(Vector2.up * jumptForce, ForceMode.Impulse);
-        }
-    }
+   
 
-    private void Move()
+    private void Move()  //캐릭터 실제 이동
     {
-        Vector3 dir = transform.forward * curMovementInput.y + transform.right * curMovementInput.x;
+        Vector3 dir = transform.forward * curMovementInput.y + transform.right * curMovementInput.x;  //w a s d 움직임 상 하 좌 우
         dir *= moveSpeed;
-        dir.y = rigidbody.velocity.y;
+        dir.y = _rigidbody.velocity.y;  // y값 초기화
 
-        rigidbody.velocity = dir;
+        _rigidbody.velocity = dir;  //방향값
     }
 
-    void CameraLook()
-    {
-        camCurXRot += mouseDelta.y * lookSensitivity;
-        camCurXRot = Mathf.Clamp(camCurXRot, minXLook, maxXLook);
-        cameraContainer.localEulerAngles = new Vector3(-camCurXRot, 0, 0);
 
-        transform.eulerAngles += new Vector3(0, mouseDelta.x * lookSensitivity, 0);
-    }
 
     bool IsGrounded()
     {
@@ -112,9 +80,5 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    public void ToggleCursor(bool toggle)
-    {
-        Cursor.lockState = toggle ? CursorLockMode.None : CursorLockMode.Locked;
-        canLook = !toggle;
-    }
+
 }
